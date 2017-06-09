@@ -1,0 +1,49 @@
+---
+- hosts: all
+  vars:
+    - known_id: 68690761
+  tasks:
+
+  - name: http get
+    uri:
+      url: "https://api.github.com/users/dullaertd/repos"
+      method: GET
+      return_content: yes
+      body_format: json
+    register: output
+
+  - debug:
+      msg: "output: {{ output.json }}"
+
+  - debug:
+      var: item
+#    with_items: " {{ output.json | json_query('[*].name') }}"
+    with_items: " {{ output.json | map(attribute='id') | list }}"
+
+  - debug:
+      msg: "ids: {{ output.json | map(attribute='id') | join(',') }}"
+
+  - debug:
+      msg: "nested ids: {{ output.json | map(attribute='owner') | map(attribute='id') | list }}"
+
+  - name: http get nmbr 2
+    uri:
+      url: "https://api.github.com/repos/dullaertd/kafkaTools/labels"
+      method: GET
+      return_content: yes
+      body_format: json
+    register: output2
+
+  - debug:
+      msg: "ids: {{ output2.json | map(attribute='id') | join(',') }}"
+
+  - name: find key
+    set_fact:
+      key_found: True
+    with_items: "{{ output.json | map(attribute='id') | list }}" 
+    when: "known_id == item" 
+
+  - debug:
+      var: key_found
+
+

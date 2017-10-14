@@ -1,0 +1,26 @@
+- hosts: all
+  gather_facts: false
+
+  vars:
+    mongodb_parameters:
+#      database: 'local'
+#      collection: "startup_log"
+      database: 'dd-test'
+      collection: "test"
+
+  tasks:
+    - debug: 
+        var: item
+      with_items:
+      - "{{ lookup('mongodb', mongodb_parameters) }}"
+   
+    - name: set lookup vars as facts
+      set_fact:
+        name: "{{ item.name }}"
+        mail: "{{ item.mail }}"
+        city: "{{ item.address.city }}"      
+      with_items:
+      - "{{ lookup('mongodb', mongodb_parameters) }}"
+
+    - debug:
+        msg: "{{ name }} lives in {{ city }}, you can reach him at {{ mail }}"
